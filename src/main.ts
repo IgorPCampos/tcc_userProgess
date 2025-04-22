@@ -1,5 +1,7 @@
 import * as dotenv from 'dotenv';
 
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+
 import { AppModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
 
@@ -15,6 +17,17 @@ async function bootstrap() {
       'http://localhost:3000',
     ],
   });
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URI!],
+      queue: 'to_game', 
+      queueOptions: { durable: true },
+    },
+  });
+
+  await app.startAllMicroservices();
 
   await app.listen(3003);
 }
