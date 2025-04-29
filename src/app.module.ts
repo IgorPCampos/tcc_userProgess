@@ -1,9 +1,7 @@
-import { AppController } from './test.controller';
 import { ClassModule } from './class/class.module';
 import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { RabbitMQProducerService } from './utils/rabbitmq-producer';
 
 @Module({
   imports: [
@@ -12,7 +10,7 @@ import { RabbitMQProducerService } from './utils/rabbitmq-producer';
     ClassModule,
     
   ],
-  controllers: [AppController],
-  providers: [RabbitMQProducerService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
