@@ -3,24 +3,27 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
-export class Class extends Document {
+export class UserCharacter extends Document {
+  @Prop({ required: true })
+  user_id: string;
+
   @Prop({ required: true })
   name: string;
 
   @Prop({ required: true })
-  description: string;
-
-  @Prop({ required: true })
-  due_date: Date;
-
-  @Prop({ required: false })
-  links: string;
+  level: number;
 
   @Prop({ required: true })
   points: number;
 
+  @Prop({ required: false })
+  avatar_id?: string;
+
   @Prop({ required: true })
-  type: string;
+  rank: string;
+
+  @Prop({ required: false })
+  trophies: string[];
 }
 
-export const ClassSchema = SchemaFactory.createForClass(Class);
+export const UserCharacterSchema = SchemaFactory.createForClass(UserCharacter);

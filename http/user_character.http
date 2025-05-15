@@ -1,0 +1,24 @@
+POST http://localhost:3003/user-character
+content-type: application/json
+
+{
+    "user_id": "681d33a6cf0c866c033a865d",
+    "name": "danilo",
+    "level": 1,
+    "points": 0,
+    "avatar_id": "",
+    "rank": "BRONZE",
+    "trophies": []
+}
+
+###
+
+POST http://localhost:3003/user-character/complete-activity
+content-type: application/json
+
+{
+    "user_id": "681d33a6cf0c866c033a865d",
+    "lesson_plan_id": "123",
+    "external_id": "1234",
+    "points": 100
+}

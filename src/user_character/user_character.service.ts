@@ -1,0 +1,69 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { UserCharacter } from './user_character.entity';
+import { CreateUserCharacterDto } from './dto/create-user_character.dto';
+import { IUserProgress } from './interface/userProgress.interface';
+
+@Injectable()
+export class UserCharacterService {
+  constructor(
+    @InjectModel(UserCharacter.name)
+    private userCharacterModel: Model<UserCharacter>,
+  ) {}
+
+  async create(
+    createUserCharacterDto: CreateUserCharacterDto,
+  ): Promise<UserCharacter> {
+    const createdUserCharacter = new this.userCharacterModel(
+      createUserCharacterDto,
+    );
+    return createdUserCharacter.save();
+  }
+
+  async findAll(): Promise<UserCharacter[]> {
+    return this.userCharacterModel.find().exec();
+  }
+
+  async findOne(id: string): Promise<UserCharacter> {
+    const UserCharacter = await this.userCharacterModel.findById(id);
+    if (!UserCharacter) throw new NotFoundException('Pefil não encontrado');
+    return UserCharacter;
+  }
+
+  async updatePointsAndLevel(userProgress: IUserProgress) {
+    try {
+      const userChar = await this.userCharacterModel.find({
+        user_id: userProgress.user_id,
+      });
+
+      if (!userChar) throw new NotFoundException('Perfil não encontrado');
+
+      const newPoints = userProgress.points + userChar[0].points;
+      userChar[0].points = newPoints;
+
+      const newLevel = Math.floor(newPoints / 1000) + 1;
+
+      if (newLevel > userChar[0].level) {
+        console.log(`Subiu de nível! ${userChar[0].level} para ${newLevel}`);
+        userChar[0].level = newLevel;
+      } else {
+        console.log(
+          `Pontos atualizados: ${newPoints}, nível atual: ${userChar[0].level}`,
+        );
+      }
+
+      await userChar[0].save();
+
+      return userChar;
+    } catch (error: any) {
+      throw new BadRequestException(
+        'Erro durante a atualização: ' + (error.message || error),
+      );
+    }
+  }
+}
