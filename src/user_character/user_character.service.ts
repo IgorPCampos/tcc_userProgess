@@ -8,12 +8,16 @@ import { Model } from 'mongoose';
 import { UserCharacter } from './user_character.entity';
 import { CreateUserCharacterDto } from './dto/create-user_character.dto';
 import { IUserProgress } from './interface/userProgress.interface';
+import { Trophy } from 'src/trophies/schemas/trophy.schema';
+import { TrophyService } from 'src/trophies/trophies.service';
 
 @Injectable()
 export class UserCharacterService {
   constructor(
     @InjectModel(UserCharacter.name)
     private userCharacterModel: Model<UserCharacter>,
+
+    private trophyService: TrophyService,
   ) {}
 
   async create(
@@ -51,10 +55,15 @@ export class UserCharacterService {
       if (newLevel > userChar[0].level) {
         console.log(`Subiu de nível! ${userChar[0].level} para ${newLevel}`);
         userChar[0].level = newLevel;
+
+        await this.trophyService.assignTrophy(userProgress, userChar[0]);
       } else {
         console.log(
           `Pontos atualizados: ${newPoints}, nível atual: ${userChar[0].level}`,
         );
+
+        await this.trophyService.assignTrophy(userProgress, userChar[0]);
+
       }
 
       await userChar[0].save();

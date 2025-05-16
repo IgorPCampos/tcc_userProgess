@@ -20,5 +20,6 @@ content-type: application/json
     "user_id": "681d33a6cf0c866c033a865d",
     "lesson_plan_id": "123",
     "external_id": "1234",
-    "points": 100
+    "points": 100,
+    "type": "LESSON"
 }

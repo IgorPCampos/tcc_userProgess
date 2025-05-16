@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { UserCharacterService } from './user_character.service';
 import { CreateUserCharacterDto } from './dto/create-user_character.dto';
-import { UpdateUserCharacterDto } from './dto/update-user_character.dto';
 import { IUserProgress } from './interface/userProgress.interface';
 
 @Controller('user-character')
@@ -17,22 +16,22 @@ export class UserCharacterController {
   constructor(private readonly userCharacterService: UserCharacterService) {}
 
   @Post()
-  create(@Body() createUserCharacterDto: CreateUserCharacterDto) {
-    return this.userCharacterService.create(createUserCharacterDto);
+  async create(@Body() createUserCharacterDto: CreateUserCharacterDto) {
+    return await this.userCharacterService.create(createUserCharacterDto);
   }
 
   @Get()
-  findAll() {
-    return this.userCharacterService.findAll();
+  async findAll() {
+    return await this.userCharacterService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userCharacterService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.userCharacterService.findOne(id);
   }
 
   @Post('/complete-activity')
-  update(@Body() userProgress: IUserProgress) {
-    return this.userCharacterService.updatePointsAndLevel(userProgress);
+  async update(@Body() userProgress: IUserProgress) {
+    return await this.userCharacterService.updatePointsAndLevel(userProgress);
   }
 }

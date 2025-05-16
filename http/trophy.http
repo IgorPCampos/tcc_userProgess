@@ -1,0 +1,23 @@
+POST http://localhost:3003/trophies 
+content-type: application/json
+
+{
+    "name": "Faça 10 lições!",
+    "description": "Faça atividades nos planos de aula e alcance o nível 2!",
+    "conditions": {
+        "type": "LESSON",
+        "value": 10
+    }
+}
+
+###
+
+POST http://localhost:3003/trophies 
+content-type: application/json
+
+{
+    "user_id": "681d33a6cf0c866c033a865d",
+    "lesson_plan_id": "123",
+    "external_id": "1234",
+    "points": 100
+}
