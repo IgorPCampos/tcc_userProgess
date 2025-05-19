@@ -45,7 +45,10 @@ export class UserCharacterService {
         user_id: userProgress.user_id,
       });
 
-      if (!userChar) throw new NotFoundException('Perfil não encontrado');
+      if (!userChar) {
+        const userCharacter = new this.userCharacterModel(userProgress);
+        return await userCharacter.save();
+      }
 
       const newPoints = userProgress.points + userChar[0].points;
       userChar[0].points = newPoints;
@@ -63,7 +66,6 @@ export class UserCharacterService {
         );
 
         await this.trophyService.assignTrophy(userProgress, userChar[0]);
-
       }
 
       await userChar[0].save();
@@ -74,5 +76,25 @@ export class UserCharacterService {
         'Erro durante a atualização: ' + (error.message || error),
       );
     }
+  }
+
+  async getStats(user_id: string): Promise<any> {
+    const userChar = await this.userCharacterModel.findOne({
+      user_id: user_id,
+    });
+
+    if (!userChar) return null;
+
+    const trophies = await this.trophyService.findAll();
+
+    const userTrophyList = trophies.filter((t) =>
+      userChar.trophies.includes(t._id.toString()),
+    );
+
+    return {
+      level: userChar.level,
+      points: userChar.points,
+      trophies: userTrophyList,
+    };
   }
 }

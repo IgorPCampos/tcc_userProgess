@@ -20,6 +20,11 @@ export class UserCharacterController {
     return await this.userCharacterService.create(createUserCharacterDto);
   }
 
+  @Get('/stats/:id')
+  async getStats(@Param('id') id: string) {
+    return await this.userCharacterService.getStats(id);
+  }
+
   @Get()
   async findAll() {
     return await this.userCharacterService.findAll();
