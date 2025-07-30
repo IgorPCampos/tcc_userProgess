@@ -16,6 +16,9 @@ export class UserCharacter extends Document {
   @Prop({ required: true })
   points: number;
 
+  @Prop({ required: true })
+  coins: number;
+
   @Prop({ required: false })
   avatar_id?: string;
 
