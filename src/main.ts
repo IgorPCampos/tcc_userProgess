@@ -18,15 +18,6 @@ async function bootstrap() {
     ],
   });
 
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: [process.env.RABBITMQ_URI!],
-      queue: 'to_game', 
-      queueOptions: { durable: true },
-    },
-  });
-
   await app.startAllMicroservices();
 
   await app.listen(3003);

@@ -6,4 +6,5 @@ export class CreateUserCharacterDto {
     avatar_id: string;
     rank: string;
     trophies: string[];
+    coins: number;
 }

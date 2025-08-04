@@ -50,7 +50,7 @@ export class UserCharacterService {
         return await userCharacter.save();
       }
 
-      const newPoints = userProgress.points + userChar[0].points;
+      const newPoints = userProgress?.points + userChar[0].points;
       userChar[0].points = newPoints;
 
       const newLevel = Math.floor(newPoints / 1000) + 1;
