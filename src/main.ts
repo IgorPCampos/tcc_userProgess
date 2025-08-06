@@ -1,25 +1,34 @@
-import * as dotenv from 'dotenv';
-
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
-dotenv.config();
-
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap'); 
 
-  app.enableCors({
-    origin: [
-      'http://localhost:3001',
-      'https://tcc-frontend-flax.vercel.app',
-      'http://localhost:3000',
-    ],
-  });
+  try {
+    const app = await NestFactory.create(AppModule);
+    const configService = app.get(ConfigService);
+    const port = configService.get<number>('PORT') || 3003;
 
-  await app.startAllMicroservices();
+    app.enableCors({
+      origin: [
+        'http://localhost:3001',
+        'https://tcc-frontend-flax.vercel.app',
+        'http://localhost:3002',
+      ],
+    });
 
-  await app.listen(3003);
+    logger.log('Starting all microservices...');
+    await app.startAllMicroservices();
+    logger.log('All microservices started successfully.');
+
+    await app.listen(port);
+    logger.log(`Application is running successfully on port: ${port}`);
+  } catch (error) {
+    logger.error('Failed to bootstrap the application.', error.stack);
+    process.exit(1); 
+  }
 }
+
 bootstrap();

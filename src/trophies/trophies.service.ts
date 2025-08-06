@@ -1,6 +1,7 @@
 import {
-  BadRequestException,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -13,95 +14,129 @@ import { UserProgress } from './schemas/user_progress.schema';
 
 @Injectable()
 export class TrophyService {
-  constructor(
+  private readonly logger = new Logger(TrophyService.name);
+
+  public constructor(
     @InjectModel(Trophy.name)
     private trophyModel: Model<Trophy>,
-
     @InjectModel(UserProgress.name)
     private userProgressModel: Model<UserProgress>,
   ) {}
 
-  async create(createTrophyDto: CreateTrophyDto): Promise<Trophy> {
-    const createdTrophy = new this.trophyModel(createTrophyDto);
-    return createdTrophy.save();
+  public async create(createTrophyDto: CreateTrophyDto): Promise<Trophy> {
+    this.logger.log(`Creating trophy with name: "${createTrophyDto.name}"`);
+    try {
+      const createdTrophy = new this.trophyModel(createTrophyDto);
+      return await createdTrophy.save();
+    } catch (error) {
+      this.logger.error(`Failed to create trophy.`, error.stack);
+      throw new InternalServerErrorException(
+        'A failure occurred while creating the trophy.',
+      );
+    }
   }
 
-  async findAll(): Promise<Trophy[]> {
-    return this.trophyModel.find().exec();
+  public async findAll(): Promise<Trophy[]> {
+    this.logger.log('Finding all trophies.');
+    try {
+      return this.trophyModel.find().exec();
+    } catch (error) {
+      this.logger.error('Failed to find all trophies.', error.stack);
+      throw new InternalServerErrorException(
+        'A failure occurred while retrieving trophies.',
+      );
+    }
   }
 
-  async findOne(id: string): Promise<Trophy> {
-    const Trophy = await this.trophyModel.findById(id);
-    if (!Trophy) throw new NotFoundException('Pefil não encontrado');
-    return Trophy;
+  public async findOne(id: string): Promise<Trophy> {
+    this.logger.log(`Finding trophy with ID: ${id}`);
+    try {
+      const trophy = await this.trophyModel.findById(id).exec();
+      if (!trophy) {
+        throw new NotFoundException(`Trophy with ID "${id}" not found.`);
+      }
+      return trophy;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Failed to find trophy with ID: ${id}`, error.stack);
+      throw new InternalServerErrorException(
+        'A failure occurred while retrieving the trophy.',
+      );
+    }
   }
 
-  async assignTrophy(
+  public async assignTrophy(
     userProgress: IUserProgress,
     userCharacter: UserCharacter,
   ): Promise<Trophy[]> {
-    const newTrophies: Trophy[] = [];
-
-    // Buscar todos os troféus
-    const allTrophies = await this.trophyModel.find().exec();
-
-    // Filtrar troféus que o usuário já possui para evitar duplicidade
-    const ownedTrophyIds = new Set(
-      userCharacter.trophies.map((t) => t.toString()),
+    this.logger.log(
+      `Checking and assigning trophies for user: ${userProgress.user_id}`,
     );
-
-    // Função auxiliar para verificar e adicionar troféus
-    const tryAddTrophy = (trophy: Trophy) => {
-      if (!ownedTrophyIds.has(trophy._id.toString())) {
-        userCharacter.trophies.push(trophy._id.toString());
-        ownedTrophyIds.add(trophy._id.toString());
-        newTrophies.push(trophy);
-      }
-    };
-
-    // Verificar troféus do tipo LEVEL
-    const levelTrophies = allTrophies.filter((t) => t.conditions.type === 'LEVEL');
-    for (const trophy of levelTrophies) {
-      if (trophy.conditions.value <= userCharacter.level) {
-        tryAddTrophy(trophy);
-      }
-    }
-
-    // Verificar troféus do tipo LESSON, EXERCISE e SCHOOL_WORK conforme userProgress.type
-    if (['LESSON', 'EXERCISE', 'SCHOOL_WORK'].includes(userProgress.type)) {
-      // Buscar todos os progressos desse tipo para o usuário
-      const userProgresses = await this.userProgressModel.find({
-        user_id: userProgress.user_id,
-        type: userProgress.type,
-      });
-
-      // Filtrar troféus desse tipo
-      const progressTrophies = allTrophies.filter(
-        (t) => t.conditions.type === userProgress.type,
+    try {
+      const newTrophies: Trophy[] = [];
+      const allTrophies = await this.findAll();
+      const ownedTrophyIds = new Set(
+        userCharacter.trophies.map((t) => t.toString()),
       );
 
-      for (const trophy of progressTrophies) {
-        if (trophy.conditions.value <= userProgresses.length) {
+      const tryAddTrophy = (trophy: Trophy) => {
+        if (!ownedTrophyIds.has(trophy._id.toString())) {
+          userCharacter.trophies.push(trophy._id.toString());
+          ownedTrophyIds.add(trophy._id.toString());
+          newTrophies.push(trophy);
+        }
+      };
+
+      const levelTrophies = allTrophies.filter(
+        (t) => t.conditions.type === 'LEVEL',
+      );
+      for (const trophy of levelTrophies) {
+        if (trophy.conditions.value <= userCharacter.level) {
           tryAddTrophy(trophy);
         }
       }
-    }
 
-    if (newTrophies.length > 0) {
-      // Salvar alterações do personagem com os novos troféus
-      await userCharacter.save();
+      if (['LESSON', 'EXERCISE', 'SCHOOL_WORK'].includes(userProgress.type)) {
+        const userProgresses = await this.userProgressModel
+          .find({
+            user_id: userProgress.user_id,
+            type: userProgress.type,
+          })
+          .exec();
 
-      console.log(
-        `O usuário ${userProgress.user_id} conquistou os troféus: ${newTrophies
-          .map((t) => t.name)
-          .join(', ')}`,
+        const progressTrophies = allTrophies.filter(
+          (t) => t.conditions.type === userProgress.type,
+        );
+
+        for (const trophy of progressTrophies) {
+          if (trophy.conditions.value <= userProgresses.length) {
+            tryAddTrophy(trophy);
+          }
+        }
+      }
+
+      if (newTrophies.length > 0) {
+        await userCharacter.save();
+        this.logger.log(
+          `User ${userProgress.user_id} has earned new trophies: ${newTrophies.map((t) => t.name).join(', ')}`,
+        );
+      } else {
+        this.logger.log(
+          `No new trophies earned for user ${userProgress.user_id}`,
+        );
+      }
+
+      return newTrophies;
+    } catch (error) {
+      this.logger.error(
+        `Failed to process trophy assignment for user: ${userProgress.user_id}`,
+        error.stack,
       );
-    } else {
-      console.log(
-        `Nenhum novo troféu conquistado para o usuário ${userProgress.user_id}`,
+      throw new InternalServerErrorException(
+        'A failure occurred during the trophy assignment process.',
       );
     }
-
-    return newTrophies;
   }
 }
