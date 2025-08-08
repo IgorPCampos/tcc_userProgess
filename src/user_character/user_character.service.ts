@@ -11,6 +11,16 @@ import { CreateUserCharacterDto } from './dto/create-user_character.dto';
 import { IUserProgress } from './interface/userProgress.interface';
 import { TrophyService } from 'src/trophies/trophies.service';
 
+export const LEVEL_THRESHOLDS = [
+  { level: 1, points: 0 },
+  { level: 2, points: 100 },
+  { level: 3, points: 250 },
+  { level: 4, points: 500 },
+  { level: 5, points: 1000 },
+  { level: 6, points: 1500 },
+  { level: 7, points: 2000 },
+];
+
 @Injectable()
 export class UserCharacterService {
   private readonly logger = new Logger(UserCharacterService.name);
@@ -85,34 +95,31 @@ export class UserCharacterService {
     const userId = userProgress.user_id;
     this.logger.log(`Updating points and level for user: ${userId}`);
     try {
-      const userCharArray = await this.userCharacterModel
-        .find({ user_id: userId })
+      const userChar = await this.userCharacterModel
+        .findOne({ user_id: userId })
         .exec();
+      this.logger.log(`Updating points and level for user: ${userId}`);
 
-      if (!userCharArray || userCharArray.length === 0) {
-        this.logger.log(
-          `No character found for user ${userId}, creating a new one.`,
+      if (!userChar) {
+        throw new NotFoundException(
+          `Character for user ID "${userId}" not found to update.`,
         );
-        const userCharacter = new this.userCharacterModel(userProgress);
-        await userCharacter.save();
-        return [userCharacter];
       }
 
-      const userChar = userCharArray[0];
       const newPoints = (userProgress?.points || 0) + userChar.points;
       userChar.points = newPoints;
+      userChar.coins = (userProgress?.coins || 0) + userChar.coins;
 
-      const newLevel = Math.floor(newPoints / 1000) + 1;
+      const determinedLevel = LEVEL_THRESHOLDS.slice()
+        .reverse()
+        .find((t) => newPoints >= t.points);
+      const newLevel = determinedLevel ? determinedLevel.level : 1;
 
       if (newLevel > userChar.level) {
         this.logger.log(
           `User ${userId} leveled up! From ${userChar.level} to ${newLevel}`,
         );
         userChar.level = newLevel;
-      } else {
-        this.logger.log(
-          `User ${userId} points updated to: ${newPoints}, current level: ${userChar.level}`,
-        );
       }
 
       await this.trophyService.assignTrophy(userProgress, userChar);

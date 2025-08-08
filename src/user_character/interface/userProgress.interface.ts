@@ -4,6 +4,7 @@ export interface IUserProgress {
     external_id?: string;
     answer: string;
     type: string;
-    points: number
-    final_grade?: number
+    points: number;
+    final_grade?: number;
+    coins?: number;
 }

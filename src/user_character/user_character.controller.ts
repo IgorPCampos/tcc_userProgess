@@ -3,9 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
 } from '@nestjs/common';
 import { UserCharacterService } from './user_character.service';
 import { CreateUserCharacterDto } from './dto/create-user_character.dto';

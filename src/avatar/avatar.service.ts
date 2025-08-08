@@ -47,12 +47,18 @@ export class AvatarService {
     }
   }
 
-  public async findOne(id: string): Promise<Avatar> {
+  public async findOne(id: string): Promise<Partial<Avatar>> {
     this.logger.log(`Finding avatar by user ID: ${id}`);
     try {
       const avatar = await this.avatarModel.findOne({ user_id: id }).exec();
       if (!avatar) {
-        throw new NotFoundException(`Avatar for user ID "${id}" not found.`);
+        this.logger.log(`Avatar for user ID: ${id} not found.`);
+        return {
+          user_id: id,
+          torso: 'steel_armor',
+          head: 'steel_helmet',
+          eyes: '',
+        };
       }
       return avatar;
     } catch (error) {
@@ -75,9 +81,11 @@ export class AvatarService {
     try {
       const avatar = await this.avatarModel.findOne({ user_id }).exec();
       if (!avatar) {
-        throw new NotFoundException(
-          `Avatar for user ID "${user_id}" not found to update.`,
-        );
+        this.logger.log(`Avatar for user ID: ${user_id} not found.`);
+
+        const createNewAvatar = new this.avatarModel(updateAvatarDto);
+        return await createNewAvatar.save();
+
       }
       if (updateAvatarDto.torso) avatar.torso = updateAvatarDto.torso;
       if (updateAvatarDto.head) avatar.head = updateAvatarDto.head;
