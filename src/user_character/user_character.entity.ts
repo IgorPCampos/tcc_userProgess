@@ -27,6 +27,9 @@ export class UserCharacter extends Document {
 
   @Prop({ required: false })
   trophies: string[];
+
+  @Prop({ required: false })
+  items: string[];
 }
 
 export const UserCharacterSchema = SchemaFactory.createForClass(UserCharacter);

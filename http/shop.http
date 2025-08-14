@@ -1,0 +1,13 @@
+POST http://localhost:3001/shop/
+content-type: application/json
+
+{
+    "name": "Bracelete de Dragão",
+    "price": 500,
+    "type": "LENDÁRIO",
+    "label": "dragon_arm"
+}
+
+###
+
+GET http://localhost:3001/shop
