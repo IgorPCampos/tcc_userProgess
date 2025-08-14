@@ -14,7 +14,7 @@ export class Avatar extends Document {
   head: string;
 
   @Prop({ required: false })
-  eyes: string;
+  arm: string;
 }
 
 export const AvatarSchema = SchemaFactory.createForClass(Avatar);

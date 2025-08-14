@@ -57,7 +57,7 @@ export class AvatarService {
           user_id: id,
           torso: 'steel_armor',
           head: 'steel_helmet',
-          eyes: '',
+          arm: 'steel_arm',
         };
       }
       return avatar;
@@ -89,7 +89,7 @@ export class AvatarService {
       }
       if (updateAvatarDto.torso) avatar.torso = updateAvatarDto.torso;
       if (updateAvatarDto.head) avatar.head = updateAvatarDto.head;
-      if (updateAvatarDto.eyes) avatar.eyes = updateAvatarDto.eyes;
+      if (updateAvatarDto.arm) avatar.arm = updateAvatarDto.arm;
       return await avatar.save();
     } catch (error) {
       if (error instanceof NotFoundException) {

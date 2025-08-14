@@ -23,4 +23,9 @@ export class ShopController {
   ) {
     return await this.shopService.update(id, updateShopItemDto);
   }
+
+  @Post(':id/buy')
+  async buyItem(@Param('id') id: string, @Body('userId') userId: string) {
+    return await this.shopService.buyItem(id, userId);
+  }
 }
