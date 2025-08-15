@@ -172,4 +172,30 @@ export class UserCharacterService {
       );
     }
   }
+
+  public async findByUserId(id: string): Promise<UserCharacter> {
+    this.logger.log(`Finding user character by user ID: ${id}`);
+    try {
+      const userCharacter = await this.userCharacterModel
+        .findOne({ user_id: id })
+        .exec();
+      if (!userCharacter) {
+        throw new NotFoundException(
+          `User character with user ID "${id}" not found.`,
+        );
+      }
+      return userCharacter;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(
+        `Failed to find user character by user ID: ${id}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(
+        'A failure occurred while retrieving the user character.',
+      );
+    }
+  }
 }

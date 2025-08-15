@@ -33,6 +33,11 @@ export class UserCharacterController {
     return await this.userCharacterService.findOne(id);
   }
 
+  @Get('/user/:id')
+  async findByUserId(@Param('id') id: string) {
+    return await this.userCharacterService.findByUserId(id);
+  }
+
   @Post('/complete-activity')
   async update(@Body() userProgress: IUserProgress) {
     return await this.userCharacterService.updatePointsAndLevel(userProgress);

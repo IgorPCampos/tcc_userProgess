@@ -62,10 +62,10 @@ export class ShopService {
     this.logger.log(`Buying shop item with ID: "${id}"`);
     try {
       const userCharacter = await this.userCharacterModel
-        .findById(userId)
+        .find({ user_id: userId })
         .exec();
 
-      if (!userCharacter) {
+      if (userCharacter.length === 0) {
         throw new Error(`User character with ID "${userId}" not found.`);
       }
 
@@ -75,13 +75,13 @@ export class ShopService {
         throw new Error(`Shop item with ID "${id}" not found.`);
       }
 
-      const availableCoins = userCharacter.coins;
+      const availableCoins = userCharacter[0].coins;
       const shopItemId = shopItem._id as mongoose.Types.ObjectId;
 
       if (availableCoins >= shopItem.price) {
-        userCharacter.coins -= shopItem.price;
-        userCharacter.items.push(shopItemId.toString());
-        await userCharacter.save();
+        userCharacter[0].coins -= shopItem.price;
+        userCharacter[0].items.push(shopItemId.toString());
+        await userCharacter[0].save();
         return shopItem;
       } else {
         throw new Error('Not enough coins to buy the item.');

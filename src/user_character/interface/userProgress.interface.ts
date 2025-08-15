@@ -7,4 +7,5 @@ export interface IUserProgress {
     points: number;
     final_grade?: number;
     coins?: number;
+    items?: string[];
 }
